@@ -2,11 +2,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { YouTubeContent } from "../types";
 
-// The API key must be obtained from `import.meta.env.VITE_API_KEY` for Vite frontend applications.
-// It is assumed to be pre-configured, valid, and accessible.
-// Do not generate any UI elements or code snippets for entering or managing the API key.
-// The application must not ask the user for it under any circumstances.
-
 // Category IDs based on Google Trends (Arts: 3, Music: 35)
 const CATEGORY_MAP: Record<string, string> = {
   'Seni dan Hiburan': '3',
@@ -14,12 +9,13 @@ const CATEGORY_MAP: Record<string, string> = {
 };
 
 export const generateYouTubeContent = async (topic: string, countryCode: string, category: string): Promise<YouTubeContent> => {
-  // Always use `const ai = new GoogleGenAI({apiKey: API_KEY});`.
-  // The API key must be obtained exclusively from `process.env.API_KEY` as per guidelines.
+  // Fix: The API key must be obtained exclusively from the environment variable `process.env.API_KEY`.
+  // This resolves the TypeScript error 'Property 'env' does not exist on type 'ImportMeta''
+  // and adheres to the `@google/genai` coding guidelines.
   const API_KEY = process.env.API_KEY;
 
   if (!API_KEY) {
-    throw new Error("API Key tidak ditemukan. Pastikan 'API_KEY' sudah diatur di Vercel atau di file .env lokal Anda.");
+    throw new Error("API Key tidak ditemukan. Pastikan variabel lingkungan 'API_KEY' sudah diatur.");
   }
 
   const ai = new GoogleGenAI({ apiKey: API_KEY });
