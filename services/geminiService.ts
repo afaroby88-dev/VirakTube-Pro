@@ -2,8 +2,9 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { YouTubeContent } from "../types";
 
-// Mengambil API_KEY dari variabel global yang diinjeksikan di index.html
-const API_KEY = (window as any).GEMINI_API_KEY || '';
+// Mengambil API_KEY dari variabel lingkungan.
+// Pastikan variabel lingkungan 'API_KEY' telah disetel di pengaturan situs Vercel Anda.
+const API_KEY = process.env.API_KEY || '';
 
 // Category IDs based on Google Trends (Arts: 3, Music: 35)
 const CATEGORY_MAP: Record<string, string> = {
@@ -13,7 +14,7 @@ const CATEGORY_MAP: Record<string, string> = {
 
 export const generateYouTubeContent = async (topic: string, countryCode: string, category: string): Promise<YouTubeContent> => {
   if (!API_KEY) {
-    throw new Error("API Key tidak ditemukan. Pastikan sudah diatur di Netlify.");
+    throw new Error("API Key tidak ditemukan. Pastikan 'API_KEY' sudah diatur di Vercel.");
   }
 
   const ai = new GoogleGenAI({ apiKey: API_KEY });
@@ -63,7 +64,7 @@ export const generateYouTubeContent = async (topic: string, countryCode: string,
               google: { type: Type.NUMBER },
               duckduckgo: { type: Type.NUMBER },
               tiktok: { type: Type.NUMBER },
-              snackvideo: { type: Type.NUMBER }
+              snackvideo: { type :Type.NUMBER }
             },
             required: ["youtube", "deepseek", "google", "duckduckgo", "tiktok", "snackvideo"]
           }
