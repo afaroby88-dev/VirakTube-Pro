@@ -2,7 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { YouTubeContent } from "../types";
 
-// The API key must be obtained exclusively from the environment variable `process.env.API_KEY`.
+// The API key must be obtained from `import.meta.env.VITE_API_KEY` for Vite frontend applications.
 // It is assumed to be pre-configured, valid, and accessible.
 // Do not generate any UI elements or code snippets for entering or managing the API key.
 // The application must not ask the user for it under any circumstances.
@@ -14,13 +14,15 @@ const CATEGORY_MAP: Record<string, string> = {
 };
 
 export const generateYouTubeContent = async (topic: string, countryCode: string, category: string): Promise<YouTubeContent> => {
-  // Always use `const ai = new GoogleGenAI({apiKey: process.env.API_KEY});`.
-  // The API key must be obtained exclusively from the environment variable `process.env.API_KEY`.
-  if (!process.env.API_KEY) {
+  // Always use `const ai = new GoogleGenAI({apiKey: API_KEY});`.
+  // The API key must be obtained exclusively from `process.env.API_KEY` as per guidelines.
+  const API_KEY = process.env.API_KEY;
+
+  if (!API_KEY) {
     throw new Error("API Key tidak ditemukan. Pastikan 'API_KEY' sudah diatur di Vercel atau di file .env lokal Anda.");
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: API_KEY });
   const catId = CATEGORY_MAP[category] || '3';
   
   const prompt = `
