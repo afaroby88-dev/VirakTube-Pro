@@ -2,7 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { YouTubeContent } from "../types";
 
-// The API key must be obtained exclusively from `process.env.API_KEY`.
+// The API key must be obtained exclusively from the environment variable `process.env.API_KEY`.
 // It is assumed to be pre-configured, valid, and accessible.
 // Do not generate any UI elements or code snippets for entering or managing the API key.
 // The application must not ask the user for it under any circumstances.
@@ -15,6 +15,11 @@ const CATEGORY_MAP: Record<string, string> = {
 
 export const generateYouTubeContent = async (topic: string, countryCode: string, category: string): Promise<YouTubeContent> => {
   // Always use `const ai = new GoogleGenAI({apiKey: process.env.API_KEY});`.
+  // The API key must be obtained exclusively from the environment variable `process.env.API_KEY`.
+  if (!process.env.API_KEY) {
+    throw new Error("API Key tidak ditemukan. Pastikan 'API_KEY' sudah diatur di Vercel atau di file .env lokal Anda.");
+  }
+
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const catId = CATEGORY_MAP[category] || '3';
   
@@ -78,6 +83,11 @@ export const generateYouTubeContent = async (topic: string, countryCode: string,
   // Untuk debugging, log respons mentah sebelum parse
   console.log("Raw API Response Object:", response);
   console.log("Raw API Response Text:", response.text);
+  // Log grounding chunks if available
+  if (response.candidates?.[0]?.groundingMetadata?.groundingChunks) {
+    console.log("Grounding Chunks:", response.candidates[0].groundingMetadata.groundingChunks);
+  }
+
 
   try {
     const content = JSON.parse(response.text || '{}');
@@ -85,6 +95,10 @@ export const generateYouTubeContent = async (topic: string, countryCode: string,
   } catch (parseError) {
     console.error("Error parsing JSON response:", parseError);
     console.error("Problematic response text (from catch block):", response.text);
+    // Propagate the original error about Google Trends if it exists, otherwise provide a generic JSON parse error.
+    if (response.text && response.text.includes("Gagal menghubungkan ke Google Trends YouTube")) {
+      throw new Error("Gagal menghubungkan ke Google Trends YouTube. Silakan coba lagi.");
+    }
     throw new Error("Gagal mengurai respons dari Gemini API. Format data tidak valid. Periksa konsol untuk respons mentah.");
   }
 };
