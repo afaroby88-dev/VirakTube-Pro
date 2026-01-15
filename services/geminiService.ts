@@ -2,9 +2,10 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { YouTubeContent } from "../types";
 
-// Mengambil API_KEY dari variabel lingkungan.
-// Pastikan variabel lingkungan 'API_KEY' telah disetel di pengaturan situs Vercel Anda.
-const API_KEY = process.env.API_KEY || '';
+// The API key must be obtained exclusively from `process.env.API_KEY`.
+// It is assumed to be pre-configured, valid, and accessible.
+// Do not generate any UI elements or code snippets for entering or managing the API key.
+// The application must not ask the user for it under any circumstances.
 
 // Category IDs based on Google Trends (Arts: 3, Music: 35)
 const CATEGORY_MAP: Record<string, string> = {
@@ -13,11 +14,8 @@ const CATEGORY_MAP: Record<string, string> = {
 };
 
 export const generateYouTubeContent = async (topic: string, countryCode: string, category: string): Promise<YouTubeContent> => {
-  if (!API_KEY) {
-    throw new Error("API Key tidak ditemukan. Pastikan 'API_KEY' sudah diatur di Vercel.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
+  // Always use `const ai = new GoogleGenAI({apiKey: process.env.API_KEY});`.
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const catId = CATEGORY_MAP[category] || '3';
   
   const prompt = `
@@ -46,7 +44,10 @@ export const generateYouTubeContent = async (topic: string, countryCode: string,
     model: 'gemini-3-pro-preview',
     contents: prompt,
     config: {
+      // Use `googleSearch` tool for queries related to recent events, news, or trending information.
+      // If `googleSearch` is used, you MUST ALWAYS extract the URLs from `groundingChunks` and list them.
       tools: [{ googleSearch: {} }],
+      // The recommended way for JSON response is to configure a `responseSchema`.
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
@@ -75,14 +76,15 @@ export const generateYouTubeContent = async (topic: string, countryCode: string,
   });
 
   // Untuk debugging, log respons mentah sebelum parse
-  // console.log("Raw API Response Text:", response.text);
+  console.log("Raw API Response Object:", response);
+  console.log("Raw API Response Text:", response.text);
 
   try {
     const content = JSON.parse(response.text || '{}');
     return content as YouTubeContent;
   } catch (parseError) {
     console.error("Error parsing JSON response:", parseError);
-    console.error("Problematic response text:", response.text);
-    throw new Error("Gagal mengurai respons dari Gemini API. Format data tidak valid.");
+    console.error("Problematic response text (from catch block):", response.text);
+    throw new Error("Gagal mengurai respons dari Gemini API. Format data tidak valid. Periksa konsol untuk respons mentah.");
   }
 };
